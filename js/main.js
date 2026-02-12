@@ -107,5 +107,68 @@
         }
     });
 
-})(jQuery);
 
+
+    // DH&A: Gallery tabs (robust, works even if Bootstrap tabs fail)
+    function dhaShowGalleryTab(targetSelector){
+        const tabClass = document.querySelector('#Galerie .tab-class');
+        if(!tabClass) return;
+        const buttons = tabClass.querySelectorAll('[data-bs-target]');
+        const panes = tabClass.querySelectorAll('.tab-pane');
+        buttons.forEach(b => b.classList.remove('active'));
+        panes.forEach(p => p.classList.remove('active','show'));
+        const btn = tabClass.querySelector(`[data-bs-target="${targetSelector}"]`);
+        const pane = tabClass.querySelector(targetSelector);
+        if(btn) btn.classList.add('active');
+        if(pane) pane.classList.add('active','show');
+    }
+
+    // Activate on nav click
+    document.addEventListener('click', function(e){
+        const btn = e.target.closest('#Galerie .tab-class [data-bs-toggle="pill"][data-bs-target]');
+        if(!btn) return;
+        e.preventDefault();
+        dhaShowGalleryTab(btn.getAttribute('data-bs-target'));
+    });
+
+    // Open specific tab from CTA buttons
+    document.addEventListener('click', function(e){
+        const trigger = e.target.closest('[data-open-tab]');
+        if(!trigger) return;
+        const tabId = trigger.getAttribute('data-open-tab'); // e.g. tab-garten
+        dhaShowGalleryTab(`#${tabId}`);
+    });
+
+    // Ensure initial state is correct
+    document.addEventListener('DOMContentLoaded', function(){
+        dhaShowGalleryTab('#tab-all');
+    });
+
+    // DH&A: Video modal (mp4)
+    const mediaModal = document.getElementById('mediaModal');
+    const mediaVideo = document.getElementById('mediaVideo');
+
+    if(mediaModal){
+        mediaModal.addEventListener('show.bs.modal', function (event) {
+            const btn = event.relatedTarget;
+            if(!btn) return;
+            const src = btn.getAttribute('data-media-src');
+            const type = btn.getAttribute('data-media-type');
+            if(mediaVideo){ mediaVideo.pause(); mediaVideo.removeAttribute('src'); mediaVideo.load(); }
+            if(type === 'video' && mediaVideo && src){
+                // set video source and force reload so it works reliably across browsers
+                mediaVideo.src = src;
+                mediaVideo.load();
+            }
+        });
+
+        mediaModal.addEventListener('hidden.bs.modal', function(){
+            if(mediaVideo){
+                mediaVideo.pause();
+                mediaVideo.removeAttribute('src');
+                mediaVideo.load();
+            }
+        });
+    }
+
+})(jQuery);
